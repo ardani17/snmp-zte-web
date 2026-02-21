@@ -1,14 +1,24 @@
 import type {
   QueryRequest,
-  QueryResponse,
   ONUInfo,
   ONUDetail,
   EmptySlot,
   SystemInfo,
-  APIError,
 } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+// Raw response from backend
+interface RawResponse<T> {
+  code: number;
+  status: string;
+  data: {
+    query: string;
+    data: T;
+    timestamp: string;
+    duration: string;
+  };
+}
 
 class APIClient {
   private baseUrl: string;
@@ -17,35 +27,25 @@ class APIClient {
     this.baseUrl = baseUrl;
   }
 
-  private async request<T>(
-    path: string,
-    options: RequestInit = {}
-  ): Promise<T> {
+  private async request<T>(path: string, body?: object): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
-      ...options,
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...options.headers,
       },
+      body: body ? JSON.stringify(body) : undefined,
     });
-
-    const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(
-        (data as APIError).message || `HTTP Error: ${res.status}`
-      );
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
     }
 
-    return data;
-  }
-
-  // Stateless query
-  async query<T>(request: QueryRequest): Promise<QueryResponse<T>> {
-    return this.request<QueryResponse<T>>("/api/v1/query", {
-      method: "POST",
-      body: JSON.stringify(request),
-    });
+    const json: RawResponse<T> = await res.json();
+    
+    // Extract the actual data from nested structure
+    // Backend returns: { code, status, data: { query, data: [...], timestamp, duration } }
+    return json.data.data;
   }
 
   // ONU List
@@ -57,7 +57,7 @@ class APIClient {
     board: number,
     pon: number
   ): Promise<ONUInfo[]> {
-    const res = await this.query<ONUInfo[]>({
+    return this.request<ONUInfo[]>("/api/v1/query", {
       ip,
       port,
       community,
@@ -66,7 +66,6 @@ class APIClient {
       board,
       pon,
     });
-    return res.data.data;
   }
 
   // ONU Detail
@@ -79,7 +78,7 @@ class APIClient {
     pon: number,
     onuId: number
   ): Promise<ONUDetail> {
-    const res = await this.query<ONUDetail>({
+    return this.request<ONUDetail>("/api/v1/query", {
       ip,
       port,
       community,
@@ -89,7 +88,6 @@ class APIClient {
       pon,
       onu_id: onuId,
     });
-    return res.data.data;
   }
 
   // Empty Slots
@@ -101,7 +99,7 @@ class APIClient {
     board: number,
     pon: number
   ): Promise<EmptySlot[]> {
-    const res = await this.query<EmptySlot[]>({
+    return this.request<EmptySlot[]>("/api/v1/query", {
       ip,
       port,
       community,
@@ -110,7 +108,6 @@ class APIClient {
       board,
       pon,
     });
-    return res.data.data;
   }
 
   // System Info
@@ -120,14 +117,13 @@ class APIClient {
     community: string,
     model: string
   ): Promise<SystemInfo> {
-    const res = await this.query<SystemInfo>({
+    return this.request<SystemInfo>("/api/v1/query", {
       ip,
       port,
       community,
       model,
       query: "system_info",
     });
-    return res.data.data;
   }
 
   // Health check
