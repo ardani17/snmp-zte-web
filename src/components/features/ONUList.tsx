@@ -16,7 +16,7 @@ export function ONUList({ config, onDisconnect }: ONUListProps) {
   const [board, setBoard] = useState(1);
   const [pon, setPon] = useState(1);
   const [onus, setOnus] = useState<ONUInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,6 +28,9 @@ export function ONUList({ config, onDisconnect }: ONUListProps) {
     setError(null);
 
     try {
+      console.log("Fetching ONUs with config:", config);
+      console.log("Board:", board, "PON:", pon);
+
       const data = await api.getONUList(
         config.ip,
         config.port,
@@ -36,8 +39,11 @@ export function ONUList({ config, onDisconnect }: ONUListProps) {
         board,
         pon
       );
+
+      console.log("Received ONU data:", data);
       setOnus(data);
     } catch (err) {
+      console.error("Error fetching ONUs:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch ONUs");
       setOnus([]);
     } finally {
@@ -126,14 +132,22 @@ export function ONUList({ config, onDisconnect }: ONUListProps) {
         </Card>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <Card className="bg-red-50 border border-red-200">
+          <p className="text-red-700 font-medium">Error: {error}</p>
+          <p className="text-red-600 text-sm mt-1">
+            Pastikan backend berjalan di http://localhost:8080
+          </p>
+        </Card>
+      )}
+
       {/* ONU Table */}
       <Card>
         <CardHeader title="ONU List" subtitle={`Board ${board}, PON ${pon}`} />
 
         {loading ? (
           <div className="text-center py-8 text-gray-500">Loading...</div>
-        ) : error ? (
-          <div className="text-center py-8 text-red-500">{error}</div>
         ) : onus.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No ONUs found on this PON
