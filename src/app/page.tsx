@@ -4,23 +4,23 @@ import { useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { QueryPanel } from "@/components/features/QueryPanel";
 import { OLTForm } from "@/components/features/OLTForm";
-import { QueryType, OLTConfig } from "@/types";
+import { QueryType, ConnectionConfig } from "@/types";
 
 export default function Home() {
-  const [oltConfig, setOLTConfig] = useState<OLTConfig | null>(null);
+  const [connectionConfig, setConnectionConfig] = useState<ConnectionConfig | null>(null);
   const [selectedQuery, setSelectedQuery] = useState<QueryType | null>(null);
   const [requiresOnuId, setRequiresOnuId] = useState(false);
   const [requiresName, setRequiresName] = useState(false);
 
-  const handleConnect = (config: OLTConfig) => {
-    setOLTConfig(config);
+  const handleConnect = (config: ConnectionConfig) => {
+    setConnectionConfig(config);
     setSelectedQuery("onu_list"); // Default query
     setRequiresOnuId(false);
     setRequiresName(false);
   };
 
   const handleDisconnect = () => {
-    setOLTConfig(null);
+    setConnectionConfig(null);
     setSelectedQuery(null);
   };
 
@@ -35,7 +35,7 @@ export default function Home() {
   };
 
   // Not connected - show connection form
-  if (!oltConfig) {
+  if (!connectionConfig) {
     return (
       <main className="min-h-screen bg-gray-100">
         <div className="max-w-xl mx-auto py-12 px-4">
@@ -77,9 +77,9 @@ export default function Home() {
       <Sidebar
         selectedQuery={selectedQuery}
         onSelectQuery={handleSelectQuery}
-        isConnected={!!oltConfig}
+        isConnected={!!connectionConfig}
         onDisconnect={handleDisconnect}
-        oltConfig={oltConfig}
+        oltConfig={connectionConfig}
       />
 
       {/* Content */}
@@ -92,7 +92,7 @@ export default function Home() {
                 SNMP-ZTE Dashboard
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Connected to {oltConfig.ip}:{oltConfig.port} ({oltConfig.model})
+                Connected to {connectionConfig.ip}:{connectionConfig.port} ({connectionConfig.model})
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export default function Home() {
                 Connected
               </span>
               <span className="text-sm text-gray-500">
-                Community: {oltConfig.community}
+                User: {connectionConfig.auth.username}
               </span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function Home() {
           {selectedQuery ? (
             <QueryPanel
               queryType={selectedQuery}
-              config={oltConfig}
+              config={connectionConfig}
               requiresOnuId={requiresOnuId}
               requiresName={requiresName}
             />

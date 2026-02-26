@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { QueryType, OLTConfig, QUERY_CATEGORIES } from "@/types";
+import { QueryType, ConnectionConfig, QUERY_CATEGORIES } from "@/types";
 import { Loader2, Search, AlertCircle } from "lucide-react";
 
 interface QueryPanelProps {
   queryType: QueryType;
-  config: OLTConfig;
+  config: ConnectionConfig;
   requiresOnuId: boolean;
   requiresName: boolean;
 }
@@ -32,16 +32,25 @@ export function QueryPanel({
     .flatMap((cat) => cat.queries)
     .find((q) => q.type === queryType);
 
+  // Build auth header
+  const getAuthHeader = () => {
+    const credentials = btoa(`${config.auth.username}:${config.auth.password}`);
+    return `Basic ${credentials}`;
+  };
+
   const handleExecute = async () => {
     setLoading(true);
     setError(null);
     setResult(null);
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/query", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      
+      const response = await fetch(`${apiUrl}/api/v1/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": getAuthHeader(),
         },
         body: JSON.stringify({
           ip: config.ip,
@@ -58,13 +67,22 @@ export function QueryPanel({
 
       const data = await response.json();
 
+      if (response.status === 401) {
+        setError("Unauthorized - Invalid username or password");
+        return;
+      }
+
       if (data.code === 200) {
         setResult(data.data);
       } else {
         setError(data.message || "Query failed");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Network error");
+      if (err instanceof TypeError && err.message === "Failed to fetch") {
+        setError("Cannot connect to API server. Is it running?");
+      } else {
+        setError(err instanceof Error ? err.message : "Network error");
+      }
     } finally {
       setLoading(false);
     }

@@ -1,9 +1,20 @@
+// Auth Credentials
+export interface AuthConfig {
+  username: string;
+  password: string;
+}
+
 // OLT Configuration
 export interface OLTConfig {
   ip: string;
   port: number;
   community: string;
   model: "C320" | "C300" | "C600";
+}
+
+// Connection Config (includes auth)
+export interface ConnectionConfig extends OLTConfig {
+  auth: AuthConfig;
 }
 
 // Query Types
