@@ -1,25 +1,47 @@
 # SNMP-ZTE Web
 
-Frontend dashboard untuk [SNMP-ZTE](https://github.com/ardani17/snmp-zte) - Multi-OLT Monitoring System.
+Frontend dashboard untuk SNMP-ZTE API - OLT Monitoring untuk ZTE devices.
 
-## Features
+## 🎯 Fitur
 
-- 🔌 **Stateless Connection** - No credentials stored
-- 📊 **ONU List View** - Real-time ONU status
-- 📡 **Multi-OLT Support** - C320, C300, C600
-- ⚡ **Fast & Responsive** - SWR caching
-- 🎨 **Modern UI** - Tailwind CSS
-- 📱 **Responsive** - Mobile friendly
+- ✅ **23 Endpoint Support** - Semua endpoint dari SNMP-ZTE API
+- ✅ **Sidebar Navigation** - Navigasi rapi dengan kategori
+- ✅ **Stateless** - Tidak menyimpan kredensial
+- ✅ **Responsive Design** - Desktop & Mobile support
+- ✅ **Real-time Query** - Eksekusi query langsung ke OLT
 
-## Tech Stack
+## 📋 Endpoint Categories
 
-- **Next.js 16** - React Framework
-- **TypeScript** - Type Safety
-- **Tailwind CSS** - Styling
-- **SWR** - Data Fetching
-- **Lucide Icons** - Icons
+### 📁 Core (11 endpoints)
+- ONU List, ONU Detail, Empty Slots
+- System Info, Board Info, All Boards
+- PON Info, Interface Stats
+- Fan Info, Temperature, ONU Traffic
 
-## Quick Start
+### 📊 Bandwidth (4 endpoints)
+- ONU Bandwidth
+- PON Port Stats
+- ONU Errors
+- Voltage Info
+
+### ⚙️ Provisioning (4 endpoints)
+- ONU Status
+- ONU Create
+- ONU Delete
+- ONU Rename
+
+### 📈 Statistics & VLAN (4 endpoints)
+- Distance Info
+- VLAN List
+- VLAN Info
+- Profile List
+
+## 🚀 Instalasi
+
+### Prasyarat
+- Node.js 18+
+- npm atau yarn
+- SNMP-ZTE API running
 
 ### 1. Clone Repository
 
@@ -34,11 +56,10 @@ cd snmp-zte-web
 npm install
 ```
 
-### 3. Configure Environment
+### 3. Konfigurasi API URL
 
-Create `.env.local`:
-
-```bash
+Edit `.env.local`:
+```env
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
@@ -48,80 +69,164 @@ NEXT_PUBLIC_API_URL=http://localhost:8080
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000)
+Buka [http://localhost:3000](http://localhost:3000)
 
-## Usage
+### 5. Build Production
 
-1. Enter OLT credentials (IP, Port, Community, Model)
-2. Click "Connect"
-3. Select Board and PON
-4. View ONU list with status, power, and details
-5. Disconnect when done
+```bash
+npm run build
+npm start
+```
 
-**No credentials are stored anywhere.** All queries are stateless.
+## 🐳 Docker
 
-## Project Structure
+### Build Image
+
+```bash
+docker build -t snmp-zte-web .
+```
+
+### Run Container
+
+```bash
+docker run -p 3000:3000 snmp-zte-web
+```
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  snmp-zte-web:
+    image: snmp-zte-web:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    restart: unless-stopped
+```
+
+## 📖 Penggunaan
+
+### 1. Connect to OLT
+
+Masukkan kredensial OLT:
+- IP Address
+- Port (default: 161)
+- SNMP Community (public/globalrw)
+- OLT Model (C320/C300/C600)
+
+### 2. Pilih Query
+
+Klik endpoint di sidebar untuk memilih query yang diinginkan.
+
+### 3. Isi Parameter
+
+Beberapa query membutuhkan parameter:
+- Board (1-16)
+- PON (1-16)
+- ONU ID (1-128)
+- Name (untuk create/rename)
+
+### 4. Execute Query
+
+Klik "Execute Query" untuk menjalankan query.
+
+### 5. View Result
+
+Hasil query ditampilkan dalam format JSON.
+
+## 🔧 Konfigurasi
+
+### Environment Variables
+
+| Variable | Default | Deskripsi |
+|----------|---------|-----------|
+| `NEXT_PUBLIC_API_URL` | http://localhost:8080 | URL SNMP-ZTE API |
+
+### SNMP Communities
+
+| Community | Akses | Penggunaan |
+|-----------|-------|------------|
+| `public` | Read-Only | Monitoring |
+| `globalrw` | Read-Write | Provisioning |
+
+## 📁 Struktur Proyek
 
 ```
 snmp-zte-web/
 ├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── layout.tsx          # Root layout
-│   │   ├── page.tsx            # Home page
-│   │   └── globals.css         # Global styles
+│   ├── app/
+│   │   ├── layout.tsx      # Root layout
+│   │   ├── page.tsx        # Main page
+│   │   └── globals.css     # Global styles
 │   ├── components/
-│   │   ├── ui/                 # Base components
-│   │   │   ├── Card.tsx
-│   │   │   └── Button.tsx
-│   │   └── features/           # Feature components
-│   │       ├── OLTForm.tsx     # Connection form
-│   │       └── ONUList.tsx     # ONU table
+│   │   ├── features/
+│   │   │   ├── OLTForm.tsx     # Connection form
+│   │   │   ├── ONUList.tsx     # ONU list display
+│   │   │   └── QueryPanel.tsx  # Query execution
+│   │   ├── layout/
+│   │   │   └── Sidebar.tsx     # Navigation sidebar
+│   │   └── ui/
+│   │       ├── Button.tsx      # Button component
+│   │       └── Card.tsx        # Card component
 │   ├── lib/
-│   │   ├── api.ts              # API client
-│   │   └── utils.ts            # Utilities
-│   ├── hooks/                  # Custom hooks
-│   └── types/                  # TypeScript types
+│   │   ├── api.ts          # API client
+│   │   └── utils.ts        # Utilities
+│   └── types/
+│       └── index.ts        # TypeScript types
 ├── public/
-├── .env.local                  # Environment variables
-├── next.config.ts
+│   └── favicon.ico
+├── .env.local
+├── package.json
 ├── tailwind.config.ts
-└── package.json
+├── tsconfig.json
+├── Dockerfile
+└── README.md
 ```
 
-## API Integration
+## 🛠️ Tech Stack
 
-Connects to [SNMP-ZTE API](https://github.com/ardani17/snmp-zte) via:
+- **Framework:** Next.js 15
+- **UI Library:** React 19
+- **Styling:** Tailwind CSS
+- **HTTP Client:** SWR
+- **Icons:** Lucide React
+- **Language:** TypeScript
 
-```
-POST /api/v1/query
-```
+## 🔗 Related Projects
 
-## Security
+- [SNMP-ZTE API](https://github.com/ardani17/snmp-zte) - Backend API
 
-- ✅ No credential storage
-- ✅ Client-side only caching (SWR)
-- ✅ HTTPS recommended
-- ✅ Rate limited backend
+## 📸 Screenshots
 
-## Deployment
+### Login Page
+![Login](docs/login.png)
 
-### Vercel (Recommended)
+### Dashboard with Sidebar
+![Dashboard](docs/dashboard.png)
 
-```bash
-vercel
-```
+### Query Result
+![Query](docs/query.png)
 
-### Docker
+## 🤝 Contributing
 
-```bash
-docker build -t snmp-zte-web .
-docker run -p 3000:3000 snmp-zte-web
-```
+1. Fork repository
+2. Buat branch fitur (`git checkout -b feature/AmazingFeature`)
+3. Commit perubahan (`git commit -m 'Add some AmazingFeature'`)
+4. Push ke branch (`git push origin feature/AmazingFeature`)
+5. Buat Pull Request
 
-## Related
+## 📄 License
 
-- [SNMP-ZTE API](https://github.com/ardani17/snmp-zte) - Backend
+MIT License
 
-## License
+## 👤 Author
 
-MIT
+- **Ardani** - [github.com/ardani17](https://github.com/ardani17)
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Lucide Icons](https://lucide.dev/)
