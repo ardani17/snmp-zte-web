@@ -54,6 +54,18 @@ function ONUListDisplay({ data }: { data: unknown }) {
     );
   }
 
+  const formatPower = (val: string) => {
+    const num = parseFloat(val);
+    if (num > 50) return <span className="text-gray-400">-</span>; // Invalid reading
+    return <span className={num < -25 ? "text-red-600" : num < -20 ? "text-yellow-600" : "text-green-600"}>{val} dBm</span>;
+  };
+
+  const formatDistance = (val: string) => {
+    const num = parseInt(val);
+    if (num === 0) return <span className="text-gray-400">-</span>;
+    return <span>{val} m</span>;
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -61,21 +73,27 @@ function ONUListDisplay({ data }: { data: unknown }) {
           <tr className="bg-gray-50">
             <th className="px-3 py-2 text-left font-medium">ID</th>
             <th className="px-3 py-2 text-left font-medium">Name</th>
-            <th className="px-3 py-2 text-left font-medium">Serial Number</th>
+            <th className="px-3 py-2 text-left font-medium">Type</th>
+            <th className="px-3 py-2 text-left font-medium">Serial</th>
             <th className="px-3 py-2 text-left font-medium">Status</th>
             <th className="px-3 py-2 text-left font-medium">Rx Power</th>
+            <th className="px-3 py-2 text-left font-medium">Tx Power</th>
+            <th className="px-3 py-2 text-left font-medium">Distance</th>
           </tr>
         </thead>
         <tbody className="divide-y">
           {onus.map((onu: Record<string, unknown>, i: number) => (
             <tr key={i} className="hover:bg-gray-50">
-              <td className="px-3 py-2">{onu.onu_id as number}</td>
+              <td className="px-3 py-2 font-bold text-blue-600">{onu.onu_id as number}</td>
               <td className="px-3 py-2 font-medium">{onu.name as string}</td>
+              <td className="px-3 py-2 text-gray-500 text-xs">{onu.type as string || "-"}</td>
               <td className="px-3 py-2 text-gray-600 font-mono text-xs">{onu.serial_number as string}</td>
               <td className="px-3 py-2">
                 <StatusBadge status={onu.status as string} />
               </td>
-              <td className="px-3 py-2 text-gray-600">{onu.rx_power as string}</td>
+              <td className="px-3 py-2">{formatPower(onu.rx_power as string)}</td>
+              <td className="px-3 py-2">{formatPower(onu.tx_power as string)}</td>
+              <td className="px-3 py-2">{formatDistance(onu.distance as string)}</td>
             </tr>
           ))}
         </tbody>
