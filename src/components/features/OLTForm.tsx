@@ -8,12 +8,23 @@ interface OLTFormProps {
   onConnect: (config: ConnectionConfig) => void;
 }
 
+type OLTModel = "C320" | "C300" | "C600";
+
+interface FormData {
+  ip: string;
+  port: string;
+  community: string;
+  model: OLTModel;
+  username: string;
+  password: string;
+}
+
 export function OLTForm({ onConnect }: OLTFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     ip: "",
     port: "161",
     community: "public",
-    model: "C320" as const,
+    model: "C320",
     username: "admin",
     password: "",
   });
@@ -203,7 +214,7 @@ export function OLTForm({ onConnect }: OLTFormProps) {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      model: e.target.value as "C320" | "C300" | "C600",
+                      model: e.target.value as OLTModel,
                     })
                   }
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

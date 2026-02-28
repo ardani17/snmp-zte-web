@@ -48,8 +48,23 @@ export type QueryType =
   | "vlan_info"
   | "profile_list";
 
+// Query Item
+export interface QueryItem {
+  type: QueryType;
+  name: string;
+  requiresOnuId: boolean;
+  requiresName?: boolean;
+}
+
+// Query Category
+export interface QueryCategory {
+  name: string;
+  icon: string;
+  queries: QueryItem[];
+}
+
 // Query Categories
-export const QUERY_CATEGORIES = {
+export const QUERY_CATEGORIES: Record<string, QueryCategory> = {
   core: {
     name: "Core",
     icon: "Server",
